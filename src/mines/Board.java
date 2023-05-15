@@ -38,7 +38,7 @@ public class Board extends JPanel {
     private static final int rows = 16;
     private static final int cols = 16;
     private int all_cells;
-    private static final JLabel statusbar;
+    private static JLabel statusbar;
     
 
     public Board(JLabel statusbar) {
@@ -95,40 +95,56 @@ public class Board extends JPanel {
 
                 if (current_col > 0) { 
                     cell = position - 1 - cols;
-                    if (cell >= 0 && field[cell] != COVERED_MINE_CELL)
-                            field[cell] += 1;
+                    coverdMineCell(cell);
                     cell = position - 1;
-                    if (cell >= 0 && field[cell] != COVERED_MINE_CELL)
-                            field[cell] += 1;
+                    coverdMineCell(cell);
  
                     cell = position + cols - 1;
-                    if (cell < all_cells && field[cell] != COVERED_MINE_CELL)
-                            field[cell] += 1;
+                    coverdMineAllCell(cell,all_cells);
                 }
 
                 cell = position - cols;
-                if (cell >= 0 && field[cell] != COVERED_MINE_CELL)
-                        field[cell] += 1;
+                coverdMineCell(cell);
                 cell = position + cols;
                 if (cell < all_cells && field[cell] != COVERED_MINE_CELL)
                         field[cell] += 1;
 
                 if (current_col < (cols - 1)) {
                     cell = position - cols + 1;
-                    if (cell >= 0 && field[cell] != COVERED_MINE_CELL)
-                            field[cell] += 1;
+                    coverdMineCell(cell);
                     cell = position + cols + 1;
-                    if (cell < all_cells && field[cell] != COVERED_MINE_CELL)
-                            field[cell] += 1;
+                    coverdMineAllCell(cell,all_cells);
                     cell = position + 1;
-                    if (cell < all_cells && field[cell] != COVERED_MINE_CELL)
-                            field[cell] += 1;
+                    coverdMineAllCell(cell,all_cells);
                 }
             }
         }
     }
-
-
+    public void coverdMineCell(int cell) {
+    	if(cell >= 0 && field[cell] != COVERED_MINE_CELL) {
+    		field[cell] += 1;
+    	}
+    }
+    public void coverdMineAllCell(int cell,int all_cells){
+        if (cell < all_cells && field[cell] != COVERED_MINE_CELL)
+            field[cell] += 1;
+    }
+    public void emptyCell(int cell) {
+    	if (cell >= 0 && field[cell] > MINE_CELL)
+            {
+                field[cell] -= COVER_FOR_CELL;
+                if (field[cell] == EMPTY_CELL)
+                    find_empty_cells(cell);
+            }
+    }
+    public void emptyAllCell(int cell,int all_cells){
+        if (cell < all_cells && field[cell] > MINE_CELL)
+                {
+                    field[cell] -= COVER_FOR_CELL;
+                    if (field[cell] == EMPTY_CELL)
+                        find_empty_cells(cell);
+                }
+    }
     public void find_empty_cells(int j) {
 
         int current_col = j % cols;
@@ -136,70 +152,30 @@ public class Board extends JPanel {
 
         if (current_col > 0) { 
             cell = j - cols - 1;
-            if (cell >= 0 && field[cell] > MINE_CELL)
-                {
-                    field[cell] -= COVER_FOR_CELL;
-                    if (field[cell] == EMPTY_CELL)
-                        find_empty_cells(cell);
-                }
+            emptyCell(cell);
 
             cell = j - 1;
-            if (cell >= 0 && field[cell] > MINE_CELL)
-                {
-                    field[cell] -= COVER_FOR_CELL;
-                    if (field[cell] == EMPTY_CELL)
-                        find_empty_cells(cell);
-                }
+            emptyCell(cell);
 
             cell = j + cols - 1;
-            if (cell < all_cells && field[cell] > MINE_CELL)
-                {
-                    field[cell] -= COVER_FOR_CELL;
-                    if (field[cell] == EMPTY_CELL)
-                        find_empty_cells(cell);
-                }
+           emptyAllCell(cell,all_cells);
         }
 
         cell = j - cols;
-        if (cell >= 0 && field[cell] > MINE_CELL)
-            {
-                field[cell] -= COVER_FOR_CELL;
-                if (field[cell] == EMPTY_CELL)
-                    find_empty_cells(cell);
-            }
+        emptyCell(cell);
 
         cell = j + cols;
-        if (cell < all_cells && field[cell] > MINE_CELL)
-            {
-                field[cell] -= COVER_FOR_CELL;
-                if (field[cell] == EMPTY_CELL)
-                    find_empty_cells(cell);
-            }
+       emptyAllCell(cell,all_cells);
 
         if (current_col < (cols - 1)) {
             cell = j - cols + 1;
-            if (cell >= 0 && field[cell] > MINE_CELL)
-                {
-                    field[cell] -= COVER_FOR_CELL;
-                    if (field[cell] == EMPTY_CELL)
-                        find_empty_cells(cell);
-                }
+            emptyCell(cell);
 
             cell = j + cols + 1;
-            if (cell < all_cells && field[cell] > MINE_CELL)
-                {
-                    field[cell] -= COVER_FOR_CELL;
-                    if (field[cell] == EMPTY_CELL)
-                        find_empty_cells(cell);
-                }
+           emptyAllCell(cell,all_cells);
 
             cell = j + 1;
-            if (cell < all_cells && field[cell] > MINE_CELL)
-                {
-                    field[cell] -= COVER_FOR_CELL;
-                    if (field[cell] == EMPTY_CELL)
-                        find_empty_cells(cell);
-                }
+           emptyAllCell(cell,all_cells);
         }
 
     }
@@ -219,11 +195,19 @@ public class Board extends JPanel {
                     inGame = false;
 
                 if (!inGame) {
-                    if (cell == COVERED_MINE_CELL) {
-                        cell = DRAW_MINE;
-                    } else if (cell == MARKED_MINE_CELL) {
-                        cell = DRAW_MARK;
-                    } else if (cell > COVERED_MINE_CELL) {
+                	switch (cell) {
+					case COVERED_MINE_CELL: {
+						cell = DRAW_MINE;
+						break;
+					}
+					case MARKED_MINE_CELL: {
+						cell = DRAW_MARK;
+						break;
+					}
+					default:
+						break;
+					}
+                    if (cell > COVERED_MINE_CELL) {
                         cell = DRAW_WRONG_MARK;
                     } else if (cell > MINE_CELL) {
                         cell = DRAW_COVER;
